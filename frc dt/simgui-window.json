@@ -1,0 +1,98 @@
+{
+  "Docking": {
+    "Data": []
+  },
+  "MainWindow": {
+    "GLOBAL": {
+      "font": "Proggy Dotted",
+      "fps": "120",
+      "height": "1009",
+      "maximized": "1",
+      "style": "0",
+      "userScale": "2",
+      "width": "1920",
+      "xpos": "0",
+      "ypos": "23"
+    }
+  },
+  "Table": {
+    "0x965B9C9E,2": {
+      "Column 0  Width": "130",
+      "Column 1  Weight": "1.0000",
+      "RefScale": "13"
+    },
+    "0xB51D8BC5,2": {
+      "Column 0  Width": "130",
+      "Column 1  Weight": "1.0000",
+      "RefScale": "13"
+    },
+    "0xE56EC1C2,4": {
+      "Column 0  Weight": "1.0000",
+      "Column 1  Weight": "1.0000",
+      "Column 2  Weight": "1.0000",
+      "Column 3  Weight": "1.0000"
+    }
+  },
+  "Window": {
+    "###FMS": {
+      "Collapsed": "0",
+      "Pos": "385,270",
+      "Size": "283,140"
+    },
+    "###Joysticks": {
+      "Collapsed": "0",
+      "Pos": "1148,499",
+      "Size": "796,240"
+    },
+    "###Keyboard 0 Settings": {
+      "Collapsed": "0",
+      "Pos": "601,288",
+      "Size": "300,560"
+    },
+    "###NetworkTables": {
+      "Collapsed": "0",
+      "Pos": "1005,221",
+      "Size": "750,459"
+    },
+    "###NetworkTables Info": {
+      "Collapsed": "0",
+      "Pos": "387,79",
+      "Size": "750,526"
+    },
+    "###Other Devices": {
+      "Collapsed": "0",
+      "Pos": "1065,34",
+      "Size": "199,144"
+    },
+    "###Plot <0>": {
+      "Collapsed": "0",
+      "Pos": "60,60",
+      "Size": "700,400"
+    },
+    "###RoboRIO": {
+      "Collapsed": "0",
+      "Pos": "505,250",
+      "Size": "193,468"
+    },
+    "###System Joysticks": {
+      "Collapsed": "0",
+      "Pos": "5,349",
+      "Size": "192,218"
+    },
+    "###Timing": {
+      "Collapsed": "0",
+      "Pos": "5,150",
+      "Size": "135,127"
+    },
+    "Debug##Default": {
+      "Collapsed": "0",
+      "Pos": "60,60",
+      "Size": "400,400"
+    },
+    "Robot State": {
+      "Collapsed": "0",
+      "Pos": "219,547",
+      "Size": "99,116"
+    }
+  }
+}

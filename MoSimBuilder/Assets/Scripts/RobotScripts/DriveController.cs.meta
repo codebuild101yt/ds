@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 7bed8cf96c1fdc6459e4ae10aaa64472
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - driveTrainParent: {instanceID: 0}
+  - _inputActionAsset: {fileID: -944628639613478452, guid: 38d46141bc6f7ff4b9b9279120565da0, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
