@@ -34,10 +34,15 @@
     }
   },
   "Window": {
+    "###/SmartDashboard/Field": {
+      "Collapsed": "0",
+      "Pos": "1010,105",
+      "Size": "1127,394"
+    },
     "###FMS": {
       "Collapsed": "0",
       "Pos": "385,270",
-      "Size": "283,140"
+      "Size": "169,184"
     },
     "###Joysticks": {
       "Collapsed": "0",
@@ -46,17 +51,17 @@
     },
     "###Keyboard 0 Settings": {
       "Collapsed": "0",
-      "Pos": "601,288",
+      "Pos": "811,255",
       "Size": "300,560"
     },
     "###NetworkTables": {
       "Collapsed": "0",
-      "Pos": "1005,221",
-      "Size": "750,459"
+      "Pos": "160,99",
+      "Size": "750,463"
     },
     "###NetworkTables Info": {
       "Collapsed": "0",
-      "Pos": "387,79",
+      "Pos": "555,389",
       "Size": "750,526"
     },
     "###Other Devices": {
@@ -71,7 +76,7 @@
     },
     "###RoboRIO": {
       "Collapsed": "0",
-      "Pos": "505,250",
+      "Pos": "666,374",
       "Size": "193,468"
     },
     "###System Joysticks": {

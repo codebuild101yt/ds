@@ -1,59 +1,43 @@
-using System.IO;
 using UnityEngine;
+using System.Net.Sockets;
+using System.Text;
 
-public class PoseLogger : MonoBehaviour
+public class PoseSender : MonoBehaviour
 {
-    [Tooltip("Assign an empty GameObject to define field origin")]
-    public Transform origin; // empty GameObject as field origin
+    [Header("References")]
+    public Transform origin;      // Field origin (world 0,0,0)
+    public Transform frontPoint;  // Empty GameObject at robot front
 
-    private StreamWriter writer;
-    private string filePath;
+    [Header("UDP Settings")]
+    public string ip = "127.0.0.1";
+    public int port = 5805;
 
-    public float logRate = 0.05f; // 20 Hz
-    private float logTimer = 0f;
+    private UdpClient udp;
 
     void Start()
     {
-        Debug.Log("PoseLogger STARTED");
-
-        filePath = Path.Combine(Application.persistentDataPath, "robot_pose.csv");
-        Debug.Log("Pose log path: " + filePath);
-
-        bool newFile = !File.Exists(filePath);
-        writer = new StreamWriter(filePath, true);
-
-        if (newFile)
-        {
-            writer.WriteLine("timestamp,x,y,heading");
-            writer.Flush();
-        }
-
-        Debug.Log("Logging robot pose to: " + filePath);
+        udp = new UdpClient();
+        Debug.Log("UDP PoseSender started → " + ip + ":" + port);
     }
 
-    void FixedUpdate()
+    void Update()
     {
-        logTimer += Time.fixedDeltaTime;
-        if (logTimer < logRate) return;
-        logTimer = 0f;
+        // Field-relative position
+        Vector3 pos = transform.position - origin.position;
 
-        if (origin == null) return;
+        // Heading from frontPoint
+        Vector3 fwd = (frontPoint.position - transform.position).normalized;
+        float headingDeg = Mathf.Atan2(fwd.x, fwd.z) * Mathf.Rad2Deg;
 
-        float timestamp = Time.time;
+        // Send as: x,z,heading_deg
+        string msg = $"{pos.x:F3},{pos.z:F3},{headingDeg:F2}";
+        byte[] data = Encoding.ASCII.GetBytes(msg);
 
-        Vector3 relativePos = transform.position - origin.position;
-
-        // Correct mapping for Field2d
-        float x = -relativePos.x;     // Unity X → Field2d X
-        float y = -relativePos.z;     // Unity Z → Field2d Y
-        float headingRad = transform.eulerAngles.y * Mathf.Deg2Rad;
-
-        writer.WriteLine($"{timestamp},{x},{y},{headingRad}");
-        writer.Flush();
+        udp.Send(data, data.Length, ip, port);
     }
 
-    void OnApplicationQuit()
+    void OnDestroy()
     {
-        writer?.Close();
+        udp?.Close();
     }
 }
