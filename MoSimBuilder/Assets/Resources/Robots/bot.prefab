@@ -3723,6 +3723,7 @@ Transform:
   - {fileID: 681965143766431967}
   - {fileID: 1798716738489634353}
   - {fileID: 8663250293319251909}
+  - {fileID: 2344367518224444505}
   - {fileID: 3281214436813719641}
   m_Father: {fileID: 268231503204787051}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -10602,7 +10603,7 @@ MonoBehaviour:
   - {fileID: 3360842287708956384}
   - {fileID: 5341460284602875334}
   - {fileID: 2443775636248566215}
-  isFieldCentric: 0
+  isFieldCentric: 1
   atTargetPos: 0
   atTargetRot: 0
   targetOffset: 0
@@ -22447,6 +22448,107 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &7232451576778185197
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2344367518224444505}
+  - component: {fileID: 2942076107996209895}
+  - component: {fileID: 4242041791905791115}
+  m_Layer: 7
+  m_Name: drivecam
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2344367518224444505
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7232451576778185197}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0.953717, z: -0.30070576, w: 0}
+  m_LocalPosition: {x: -0.000000009160091, y: 0.76000005, z: -0.016000003}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4395390029310093953}
+  m_LocalEulerAnglesHint: {x: 35, y: 180, z: 0}
+--- !u!20 &2942076107996209895
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7232451576778185197}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 1000
+  field of view: 60
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 7
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!114 &4242041791905791115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7232451576778185197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 436687479ba91f740ad707009c43ac3e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cam: {fileID: 2942076107996209895}
+  width: 640
+  height: 480
+  fps: 15
+  port: 8080
 --- !u!1 &7243587925261772149
 GameObject:
   m_ObjectHideFlags: 0
@@ -25749,7 +25851,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   origin: {fileID: 4919730396787984499, guid: 6e8724c1fe6504940adadad5c3ce67c1, type: 3}
   frontPoint: {fileID: 1375002658325598387}
-  logRate: 0.05
+  ip: 127.0.0.1
+  port: 5805
 --- !u!1 &8725893811671419009
 GameObject:
   m_ObjectHideFlags: 0

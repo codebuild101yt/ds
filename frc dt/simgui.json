@@ -38,6 +38,12 @@
     }
   },
   "NetworkTables": {
+    "Persistent Values": {
+      "open": false
+    },
+    "Retained Values": {
+      "open": false
+    },
     "transitory": {
       "FMSInfo": {
         "open": true
@@ -72,14 +78,15 @@
       "open": true
     },
     "Server": {
-      "Publishers": {
-        "open": true
-      },
       "Subscribers": {
         "open": true
       },
       "open": true
-    }
+    },
+    "pynetworktables 2021.0.0-NT3@127.0.0.1:62313": {
+      "open": true
+    },
+    "visible": true
   },
   "Plot": {
     "Plot <0>": {
