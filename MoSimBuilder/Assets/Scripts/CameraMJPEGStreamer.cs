@@ -1,119 +1,123 @@
 using UnityEngine;
-using System.Collections;
-using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.IO;
+using System.Collections.Concurrent;
 
-public class CameraMJPEGStreamerTCP : MonoBehaviour
+public class TCPVideoSender : MonoBehaviour
 {
     [Header("Camera Settings")]
-    public Camera cam;                 // Camera on Display 8
-    public int width = 640;
-    public int height = 480;
-    public int fps = 15;
-    public int port = 8080;
+    public Camera cam;
+    public int frameWidth = 320;
+    public int frameHeight = 240;
+    public int fps = 10; // lower FPS for reliability
 
-    private RenderTexture renderTexture;
-    private byte[] latestFrame;
-    private TcpListener tcpListener;
-    private bool serverRunning = false;
+    [Header("TCP Settings")]
+    public string ip = "127.0.0.1";
+    public int port = 5806;
+
+    private TcpClient client;
+    private NetworkStream stream;
+    private RenderTexture rt;
+    private Texture2D tex;
+    private Thread sendThread;
+    private bool running = true;
+    private float interval;
+
+    private ConcurrentQueue<byte[]> frameQueue = new ConcurrentQueue<byte[]>();
 
     void Start()
     {
-        // Setup camera
-        renderTexture = new RenderTexture(width, height, 24);
-        cam.targetTexture = renderTexture;
+        if (cam == null) cam = Camera.main;
 
-        // Start server thread
-        Thread serverThread = new Thread(StartServer);
-        serverThread.IsBackground = true;
-        serverThread.Start();
+        rt = new RenderTexture(frameWidth, frameHeight, 24);
+        tex = new Texture2D(frameWidth, frameHeight, TextureFormat.RGB24, false);
 
-        // Start capturing frames
-        StartCoroutine(CaptureFrames());
+        interval = 1f / fps;
+
+        sendThread = new Thread(SendThread);
+        sendThread.IsBackground = true;
+        sendThread.Start();
     }
 
-    IEnumerator CaptureFrames()
+    void Update()
     {
-        var wait = new WaitForSeconds(1f / fps);
-        while (true)
+        // Capture on main thread
+        cam.targetTexture = rt;
+        RenderTexture.active = rt;
+        cam.Render();
+
+        tex.ReadPixels(new Rect(0, 0, frameWidth, frameHeight), 0, 0);
+        tex.Apply();
+
+        cam.targetTexture = null;
+        RenderTexture.active = null;
+
+        // Encode to JPEG and enqueue
+        byte[] jpg = tex.EncodeToJPG(50);
+        frameQueue.Enqueue(jpg);
+
+        // Limit queue size to avoid memory bloat
+        while (frameQueue.Count > 5)
         {
-            Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
-            RenderTexture.active = renderTexture;
-            tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-            tex.Apply();
-            RenderTexture.active = null;
-
-            latestFrame = tex.EncodeToJPG();
-            Destroy(tex);
-
-            yield return wait;
+            frameQueue.TryDequeue(out _);
         }
     }
 
-    void StartServer()
+    void SendThread()
     {
-        tcpListener = new TcpListener(IPAddress.Any, port);
-        tcpListener.Start();
-        serverRunning = true;
-        Debug.Log("MJPEG TCP Server started on port " + port);
-
-        while (serverRunning)
+        while (running)
         {
             try
             {
-                TcpClient client = tcpListener.AcceptTcpClient();
-                Debug.Log("Client connected: " + client.Client.RemoteEndPoint);
-                Thread clientThread = new Thread(() => HandleClient(client));
-                clientThread.IsBackground = true;
-                clientThread.Start();
+                Debug.Log($"Attempting TCP connection to {ip}:{port}...");
+                client = new TcpClient();
+                client.Connect(ip, port);
+                stream = client.GetStream();
+                Debug.Log($"Connected to Python TCP server at {ip}:{port}");
+                break;
             }
-            catch { }
-        }
-    }
-
-    void HandleClient(TcpClient client)
-    {
-        NetworkStream stream = client.GetStream();
-        StreamWriter writer = new StreamWriter(stream, Encoding.ASCII);
-        try
-        {
-            // Send HTTP headers
-            writer.Write("HTTP/1.0 200 OK\r\n");
-            writer.Write("Server: UnityMJPEG\r\n");
-            writer.Write("Cache-Control: no-cache\r\n");
-            writer.Write("Pragma: no-cache\r\n");
-            writer.Write("Content-Type: multipart/x-mixed-replace; boundary=frame\r\n");
-            writer.Write("\r\n");
-            writer.Flush();
-
-            while (client.Connected)
+            catch
             {
-                if (latestFrame != null)
+                Debug.Log($"TCP connection to {ip}:{port} failed, retrying in 1s...");
+                Thread.Sleep(1000);
+            }
+        }
+
+        while (running)
+        {
+            if (frameQueue.TryDequeue(out byte[] jpg))
+            {
+                try
                 {
-                    string header = "--frame\r\nContent-Type: image/jpeg\r\nContent-Length: " + latestFrame.Length + "\r\n\r\n";
-                    byte[] headerBytes = Encoding.ASCII.GetBytes(header);
-                    stream.Write(headerBytes, 0, headerBytes.Length);
-                    stream.Write(latestFrame, 0, latestFrame.Length);
-                    stream.Write(Encoding.ASCII.GetBytes("\r\n"), 0, 2);
+                    // 4-byte big-endian length prefix
+                    byte[] lenBytes = System.BitConverter.GetBytes(jpg.Length);
+                    if (System.BitConverter.IsLittleEndian)
+                        System.Array.Reverse(lenBytes);
+
+                    stream.Write(lenBytes, 0, 4);
+                    stream.Write(jpg, 0, jpg.Length);
                     stream.Flush();
                 }
-                Thread.Sleep(1000 / fps);
+                catch
+                {
+                    Debug.LogWarning("Connection lost while sending frame.");
+                    running = false;
+                }
             }
-        }
-        catch { }
-        finally
-        {
-            client.Close();
-            Debug.Log("Client disconnected");
+            else
+            {
+                Thread.Sleep(1);
+            }
         }
     }
 
-    void OnApplicationQuit()
+    void OnDestroy()
     {
-        serverRunning = false;
-        tcpListener.Stop();
+        running = false;
+        if (sendThread != null && sendThread.IsAlive) sendThread.Join();
+        stream?.Close();
+        client?.Close();
+        Destroy(rt);
+        Destroy(tex);
     }
 }
