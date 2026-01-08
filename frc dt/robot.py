@@ -16,12 +16,14 @@ UDP_POSE_PORT = 5805
 UNITY_TO_METERS = 1.0
 VELOCITY_SCALE = 0.5
 
-TCP_IP = "127.0.0.1"
-TCP_PORT = 8080
-FRAME_WIDTH = 320
-FRAME_HEIGHT = 240
+# Ports must match Unity cameras
+CAMERA_CONFIGS = [
+    {"name": "DriveCam", "tcp_port": 8080, "width": 320, "height": 240},
+    {"name": "ArmCam",   "tcp_port": 8081, "width": 320, "height": 240},
+    {"name": "LiftCam",  "tcp_port": 8082, "width": 320, "height": 240},
+]
 
-RECONNECT_DELAY = 1.0  # seconds before trying to reconnect
+RECONNECT_DELAY = 1.0  # seconds before reconnect
 # ==================
 
 # UDP socket for pose telemetry
@@ -37,8 +39,66 @@ def compute_velocity(last_x, last_y, current_x, current_y, dt):
     return (current_x - last_x) / dt, (current_y - last_y) / dt
 
 
+class MultiCameraServer:
+    """Handles multiple TCP video feeds from Unity"""
+
+    def __init__(self, cameras):
+        self.frames = {}
+        self.cams = {}
+        for cam in cameras:
+            self.frames[cam["name"]] = None
+            self.cams[cam["name"]] = CameraServer.putVideo(cam["name"], cam["width"], cam["height"])
+            threading.Thread(target=self._tcp_video_loop, args=(cam,), daemon=True).start()
+
+    def _tcp_video_loop(self, cam):
+        name = cam["name"]
+        port = cam["tcp_port"]
+        width = cam["width"]
+        height = cam["height"]
+
+        while True:
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.bind(("0.0.0.0", port))
+                sock.listen(1)
+                print(f"[{name}] Waiting for TCP connection on port {port}...")
+                conn, addr = sock.accept()
+                print(f"[{name}] Unity connected: {addr}")
+
+                buffer = b""
+                while True:
+                    # Read 4-byte big-endian length
+                    while len(buffer) < 4:
+                        data = conn.recv(4096)
+                        if not data:
+                            raise ConnectionError("Disconnected")
+                        buffer += data
+                    frame_len = struct.unpack(">I", buffer[:4])[0]
+                    buffer = buffer[4:]
+
+                    # Read full frame
+                    while len(buffer) < frame_len:
+                        data = conn.recv(4096)
+                        if not data:
+                            raise ConnectionError("Disconnected during frame")
+                        buffer += data
+                    frame_data = buffer[:frame_len]
+                    buffer = buffer[frame_len:]
+
+                    frame = cv2.imdecode(np.frombuffer(frame_data, np.uint8), cv2.IMREAD_COLOR)
+                    if frame is not None:
+                        self.frames[name] = frame
+                        self.cams[name].putFrame(frame)
+                    else:
+                        print(f"[{name}] Failed to decode frame")
+            except Exception as e:
+                print(f"[{name}] Connection lost: {e}. Retrying in {RECONNECT_DELAY}s...")
+                time.sleep(RECONNECT_DELAY)
+
+
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
+        # --- Field / Pose ---
         self.field = Field2d()
         SmartDashboard.putData("Field", self.field)
         self.velocity_arrow = self.field.getObject("VelocityArrow")
@@ -50,12 +110,10 @@ class MyRobot(wpilib.TimedRobot):
         self.last_wpilib_y = None
         self.last_time = None
 
-        self.frame = None
-        self.cam_output = CameraServer.putVideo("DriveCam", FRAME_WIDTH, FRAME_HEIGHT)
+        # --- Cameras ---
+        self.multi_cam = MultiCameraServer(CAMERA_CONFIGS)
 
-        # Start TCP video loop with reconnect
-        threading.Thread(target=self._tcp_video_loop, daemon=True).start()
-        print("Robot initialized. Waiting for Unity pose and video feed...")
+        print("Robot initialized. Waiting for Unity pose and video feeds...")
 
     def teleopPeriodic(self):
         # --- UDP Pose ---
@@ -112,48 +170,3 @@ class MyRobot(wpilib.TimedRobot):
             SmartDashboard.putNumber("Field Velocity X", vel_x)
             SmartDashboard.putNumber("Field Velocity Y", vel_y)
             SmartDashboard.putNumber("Velocity Magnitude", speed)
-
-        # Update CameraServer with latest frame
-        if self.frame is not None:
-            self.cam_output.putFrame(self.frame)
-
-    def _tcp_video_loop(self):
-        while True:
-            try:
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.bind((TCP_IP, TCP_PORT))
-                sock.listen(1)
-                print(f"Waiting for Unity TCP connection on {TCP_IP}:{TCP_PORT}...")
-                conn, addr = sock.accept()
-                print(f"Unity connected: {addr}")
-
-                buffer = b""
-                while True:
-                    # Read 4-byte big-endian length
-                    while len(buffer) < 4:
-                        data = conn.recv(4096)
-                        if not data:
-                            raise ConnectionError("Unity disconnected")
-                        buffer += data
-                    length_bytes = buffer[:4]
-                    buffer = buffer[4:]
-                    frame_len = struct.unpack(">I", length_bytes)[0]
-
-                    # Read full JPEG frame
-                    while len(buffer) < frame_len:
-                        data = conn.recv(4096)
-                        if not data:
-                            raise ConnectionError("Unity disconnected during frame")
-                        buffer += data
-                    frame_data = buffer[:frame_len]
-                    buffer = buffer[frame_len:]
-
-                    # Decode JPEG
-                    frame = cv2.imdecode(np.frombuffer(frame_data, np.uint8), cv2.IMREAD_COLOR)
-                    if frame is not None:
-                        self.frame = frame
-                    else:
-                        print(f"Failed to decode frame of length {len(frame_data)}")
-            except Exception as e:
-                print(f"[TCP] Connection lost: {e}. Retrying in {RECONNECT_DELAY}s...")
-                time.sleep(RECONNECT_DELAY)
