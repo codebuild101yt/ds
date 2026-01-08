@@ -10490,6 +10490,7 @@ GameObject:
   - component: {fileID: 8178299771448441247}
   - component: {fileID: 4944954481456341839}
   - component: {fileID: 5267828813051086232}
+  - component: {fileID: 5077288306877221892}
   m_Layer: 7
   m_Name: bot
   m_TagString: Player
@@ -10700,6 +10701,22 @@ MonoBehaviour:
   m_DefaultActionMap: Robot
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &5077288306877221892
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3326403808600712994}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 022cb15c4dc00f140ae214b4435e251a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetPoint: {fileID: 3408154405606294614, guid: 99e24e41e269f7f46996ced652a34e20, type: 3}
+  maxForwardForce: 1000
+  maxTurnTorque: 1000
+  arriveDistance: 0.15
 --- !u!1 &3338425427930369444
 GameObject:
   m_ObjectHideFlags: 0
